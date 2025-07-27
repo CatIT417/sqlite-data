@@ -26,7 +26,7 @@ extension BaseCloudKitTests {
       }
       try await syncEngine.processPendingRecordZoneChanges(scope: .private)
 
-      try await syncEngine.modifyRecordZones(scope: .private, deleting: [SyncEngine.defaultZone.zoneID]).notify()
+      try await syncEngine.modifyRecordZones(scope: .private, deleting: [syncEngine.defaultZone.zoneID]).notify()
       try await syncEngine.processPendingDatabaseChanges(scope: .private)
 
       try {
@@ -60,7 +60,7 @@ extension BaseCloudKitTests {
         .handleEvent(
           SyncEngine.Event.fetchedDatabaseChanges(
             modifications: [],
-            deletions: [(SyncEngine.defaultZone.zoneID, .encryptedDataReset)]
+            deletions: [(syncEngine.defaultZone.zoneID, .encryptedDataReset)]
           ),
           syncEngine: syncEngine.private
         )
