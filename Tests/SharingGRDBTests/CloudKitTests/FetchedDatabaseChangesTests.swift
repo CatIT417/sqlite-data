@@ -24,10 +24,10 @@ extension BaseCloudKitTests {
           UnsyncedModel(id: 2)
         }
       }
-      await syncEngine.processPendingRecordZoneChanges(scope: .private)
+      try await syncEngine.processPendingRecordZoneChanges(scope: .private)
 
-      await syncEngine.modifyRecordZones(scope: .private, deleting: [SyncEngine.defaultZone.zoneID])
-      await syncEngine.processPendingDatabaseChanges(scope: .private)
+      try await syncEngine.modifyRecordZones(scope: .private, deleting: [syncEngine.defaultZone.zoneID]).notify()
+      try await syncEngine.processPendingDatabaseChanges(scope: .private)
 
       try {
         try userDatabase.read { db in
@@ -54,17 +54,17 @@ extension BaseCloudKitTests {
           UnsyncedModel(id: 2)
         }
       }
-      await syncEngine.processPendingRecordZoneChanges(scope: .private)
+      try await syncEngine.processPendingRecordZoneChanges(scope: .private)
 
       await syncEngine
         .handleEvent(
           SyncEngine.Event.fetchedDatabaseChanges(
             modifications: [],
-            deletions: [(SyncEngine.defaultZone.zoneID, .encryptedDataReset)]
+            deletions: [(syncEngine.defaultZone.zoneID, .encryptedDataReset)]
           ),
           syncEngine: syncEngine.private
         )
-      await syncEngine.processPendingRecordZoneChanges(scope: .private)
+      try await syncEngine.processPendingRecordZoneChanges(scope: .private)
 
       try {
         try userDatabase.read { db in
