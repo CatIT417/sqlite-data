@@ -1,11 +1,17 @@
 #if canImport(CloudKit)
-  import CloudKit
-  import ConcurrencyExtras
+  public import CloudKit
+  package import ConcurrencyExtras
   import Dependencies
+  public import GRDB
+  public import IssueReporting
   import OrderedCollections
-  import OSLog
+  public import OSLog
   import Observation
-  import StructuredQueriesCore
+  public import StructuredQueries
+  import StructuredQueriesSQLite
+  #if EXCLUDE_EXPORTS
+    public import StructuredQueriesSQLiteCore
+  #endif
   import SwiftData
   import TabularData
 
@@ -15,7 +21,7 @@
 
   /// An object that manages the synchronization of local and remote SQLite data.
   ///
-  /// See <doc:CloudKit> for more information.
+  /// See <doc:CloudKitSync> for more information.
   @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
   public final class SyncEngine: Observable, Sendable {
     package let userDatabase: UserDatabase
@@ -282,7 +288,7 @@
             object: nil,
             queue: nil
           ) { [syncEngines] _ in
-            Task { @MainActor in
+            _ = Task { @MainActor in
               let taskIdentifier = UIApplication.shared.beginBackgroundTask()
               defer { UIApplication.shared.endBackgroundTask(taskIdentifier) }
               let (privateSyncEngine, sharedSyncEngine) = syncEngines.withValue {
@@ -896,7 +902,7 @@
 
     /// Whether or not the ``SyncEngine`` is currently writing changes to the database.
     ///
-    /// See <doc:CloudKit#Updating-triggers-to-be-compatible-with-synchronization> for more info.
+    /// See <doc:CloudKitSync#Updating-triggers-to-be-compatible-with-synchronization> for more info.
     @DatabaseFunction("sqlitedata_icloud_syncEngineIsSynchronizingChanges")
     public static var isSynchronizing: Bool {
       if _isCreatingTemporaryTrigger {
@@ -2197,7 +2203,7 @@
     /// Attaches the metadatabase to an existing database connection.
     ///
     /// Invoke this method when preparing your database connection in order to allow querying the
-    /// ``SyncMetadata`` table (see <doc:CloudKit#Accessing-CloudKit-metadata> for more info):
+    /// ``SyncMetadata`` table (see <doc:CloudKitSync#Accessing-CloudKit-metadata> for more info):
     ///
     /// ```swift
     /// func appDatabase() -> any DatabaseWriter {
@@ -2243,10 +2249,6 @@
         containerIdentifier: containerIdentifier
       )
       let path = url.isInMemory ? url.absoluteString : url.path(percentEncoded: false)
-      try FileManager.default.createDirectory(
-        at: .applicationSupportDirectory,
-        withIntermediateDirectories: true
-      )
       let database: any DatabaseWriter =
         url.isInMemory
         ? try DatabaseQueue(path: path)
